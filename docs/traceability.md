@@ -1,14 +1,6 @@
 # Requirements Traceability Matrix (RTM)
 
-In medical software development, bidirectional traceability between system requirements, architecture implementation, and automated verification is essential.
-
-I have documented the traceability matrix below linking every functional requirement to my backend code and automated tests.
-
----
-
-## Traceability Matrix
-
-| Requirement ID | Requirement Specification (Input) | My Architecture Implementation (Output) | Verification & Automated Test |
+| Requirement ID | Requirement Specification (Input) | Architecture Implementation (Output) | Verification & Automated Test |
 | :--- | :--- | :--- | :--- |
 | **REQ-001** | **User Authentication & Session Management**: Authorized users shall log in with valid credentials, receive signed JWT tokens, and be able to revoke sessions on logout. | - `app/auth_endpoints/login/route.py`<br>- `app/auth_endpoints/login/service.py`<br>- `app/auth_endpoints/logout/service.py`<br>- `med_schema.sessions` | - `tests/test_logout.py::test_logout_flow`<br>- Verified with valid and invalid credentials in pytest. |
 | **REQ-002** | **Role-Based Access Control (RBAC)**: System operations shall be restricted based on permissions stored in the database. Non-permitted operations must return HTTP 403 Forbidden. | - `app/security/security.py` (`get_permission`)<br>- `app/repository/repo.py` (`find_permission`)<br>- `med_schema.role_permissions` | - `tests/test_1.py`: Verified Viewer (Role 6) receives 403 when attempting status update.<br>- Verified Admin blocked from `/admin_sign_up` (403). |
@@ -18,9 +10,3 @@ I have documented the traceability matrix below linking every functional require
 | **REQ-006** | **Protected Case Deletion**: Only users with explicit `delete` permission (Admin/Superuser) shall permanently delete case records. Viewers must be blocked. | - `app/core_endpoints/cases/route.py` (`delete_case`)<br>- Guarded with `Depends(get_permission("delete"))` | - Integration test: Verified Viewer deletion attempt triggers HTTP 403; Admin deletion returns 200. |
 | **REQ-007** | **Token Refresh & Rotation**: Expired access tokens shall be silently refreshed using valid refresh tokens, rotating session tokens to prevent replay attacks. | - `app/auth_endpoints/refresh_token/route.py`<br>- `app/auth_endpoints/refresh_token/service.py` | - `tests/test_logout.py`: Verified token rotation and rejection of revoked refresh tokens with 401. |
 | **REQ-008** | **Superuser Admin Provisioning**: Only Superusers (Role 4) possessing `create_admin` shall provision new Clinical Administrators (Role 5). | - `app/auth_endpoints/admin_sign_up/route.py`<br>- Guarded with `Depends(get_permission("create_admin"))` | - Integration test: Verified Superuser receives 200; Admin receives 403 Permission Denied. |
-
----
-
-## Verification Summary
-
-All core requirements above are verified against my live FastAPI backend running with PostgreSQL. The security model ensures that permissions are always checked server-side, and client-side UI states simply provide user feedback while never acting as the authority.
